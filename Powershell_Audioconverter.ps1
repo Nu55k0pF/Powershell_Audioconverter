@@ -47,3 +47,5 @@ Register-ObjectEvent $watcher "Deleted" -Action $action
 while ($true) { 
     sleep 5
 }
+
+# TODO: Add funcionality to decet if in file is .wav and do nothing but create the csv file
