@@ -19,7 +19,7 @@ $action2 = {
         $changeType = $Event.SourceEventArgs.ChangeType
         Write-Host "$changeType, $path"
 
-        if ($infile -match '\.(wav|flac|ogg|m4a|aac|mp2)$') {
+        if ($infile -match '\.(wav|flac|ogg|m4a|aac|mp2|mp4)$') {
             $outfile = [System.IO.Path]::ChangeExtension($infile, ".mp3")
             $ffmpegCommand = "ffmpeg -y -i `"$infile`" -codec:a libmp3lame -qscale:a 2 `"$outfile`""
             Invoke-Expression $ffmpegCommand
