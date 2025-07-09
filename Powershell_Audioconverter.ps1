@@ -33,7 +33,7 @@ $action2 = {
         $parts = $filenameOnly -split '-'
         # Schreibe alle Teile in eine Zeile, getrennt durch ";"
         $csvLine = $parts -join ';'
-        Set-Content -Encoding UTF8 -Path $csvFile -Value $csvLine
+        Set-Content -Path $csvFile -Value $csvLine
         }   
 }
 
@@ -49,3 +49,4 @@ while ($true) {
 }
 
 # TODO: Add funcionality to decet if in file is .wav and do nothing but create the csv file
+# TODO: Add logging 
