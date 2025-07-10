@@ -1,6 +1,6 @@
 # SET FOLDER TO WATCH + FILES TO WATCH + SUBFOLDERS YES/NO
 $watcher = New-Object System.IO.FileSystemWatcher
-$watcher.Path = "C:\Users\Johannes Schnurrenbe\Desktop\Zenon Universalimport"
+$watcher.Path = "G:\ZenonImport"
 $watcher.Filter = "*.*"
 $watcher.IncludeSubdirectories = $true
 $watcher.EnableRaisingEvents = $true  
@@ -19,21 +19,36 @@ $action2 = {
         $changeType = $Event.SourceEventArgs.ChangeType
         Write-Host "$changeType, $path"
 
-        if ($infile -match '\.(wav|flac|ogg|m4a|aac|mp2|mp4)$') {
-            $outfile = [System.IO.Path]::ChangeExtension($infile, ".mp3")
-            $ffmpegCommand = "ffmpeg -y -i `"$infile`" -codec:a libmp3lame -qscale:a 2 `"$outfile`""
+        if ($infile -match '\.(flac|ogg|m4a|aac|mp2|mp3|mp4)$') {
+            $outfile = [System.IO.Path]::ChangeExtension($infile, ".wav")
+            $ffmpegCommand = "ffmpeg -y -i `"$infile`" -acodec pcm_s16le -ar 48000 `"$outfile`""
             Invoke-Expression $ffmpegCommand
             Write-Host "Erfolgreich konvertiert: $outfile"
             sleep 2
             Remove-Item $infile -Force
 
-        # CSV-Datei mit gleichem Namen wie infile, aber .csv-Endung
-        $csvFile = [System.IO.Path]::ChangeExtension($infile, ".csv")
-        $filenameOnly = [System.IO.Path]::GetFileNameWithoutExtension($infile)
-        $parts = $filenameOnly -split '-'
-        # Schreibe alle Teile in eine Zeile, getrennt durch ";"
-        $csvLine = $parts -join ';'
-        Set-Content -Path $csvFile -Value $csvLine
+            # CSV-Datei mit gleichem Namen wie infile, aber .csv-Endung
+            $csvFile = [System.IO.Path]::ChangeExtension($infile, ".csv")
+            $filenameOnly = [System.IO.Path]::GetFileNameWithoutExtension($infile)
+            $parts = $filenameOnly -split '-'
+            # Schreibe alle Teile in eine Zeile, getrennt durch ";"
+            $csvLine = $parts -join ';'
+            Set-Content -Path $csvFile -Value $csvLine
+        }   
+
+        if ($infile -match '\.(wav)$') {
+            $outfile = [System.IO.Path]::ChangeExtension($infile, ".wav")
+            $ffmpegCommand = "ffmpeg -y -i `"$infile`" -acodec pcm_s16le -ar 48000 `"$outfile`""
+            Invoke-Expression $ffmpegCommand
+            Write-Host "Erfolgreich konvertiert: $outfile"
+
+            # CSV-Datei mit gleichem Namen wie infile, aber .csv-Endung
+            $csvFile = [System.IO.Path]::ChangeExtension($infile, ".csv")
+            $filenameOnly = [System.IO.Path]::GetFileNameWithoutExtension($infile)
+            $parts = $filenameOnly -split '-'
+            # Schreibe alle Teile in eine Zeile, getrennt durch ";"
+            $csvLine = $parts -join ';'
+            Set-Content -Path $csvFile -Value $csvLine
         }   
 }
 
@@ -48,5 +63,4 @@ while ($true) {
     sleep 5
 }
 
-# TODO: Add funcionality to decet if in file is .wav and do nothing but create the csv file
 # TODO: Add logging 
