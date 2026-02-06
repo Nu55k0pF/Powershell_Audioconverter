@@ -1,6 +1,6 @@
 # SET FOLDER TO WATCH + FILES TO WATCH + SUBFOLDERS YES/NO
 $watcher = New-Object System.IO.FileSystemWatcher
-$watcher.Path = "G:\ZenonImport"
+$watcher.Path = "C:\Users\Johannes Schnurrenbe\Desktop\Test_Links" # adjust as needed
 $watcher.Filter = "*.*"
 $watcher.IncludeSubdirectories = $true
 $watcher.EnableRaisingEvents = $true  
