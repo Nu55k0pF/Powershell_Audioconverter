@@ -21,7 +21,7 @@ function Wait-ForFileReady {
 }
 
 # Logging setup: write all messages to a log file with timestamps
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$ScriptDir = $PSScriptRoot
 if (-not $ScriptDir) { $ScriptDir = Get-Location }
 $LogFile = Join-Path $ScriptDir "Audio_Import.log"
 
@@ -100,9 +100,10 @@ Register-ObjectEvent $watcher "Created" -Action $action2
 Register-ObjectEvent $watcher "Deleted" -Action $action
 # Register-ObjectEvent $watcher "Renamed" -Action $action2
 
-# Endlosschleife, damit das Skript weiterhin läuft
+# Keep the script running to process events
+Write-Log 'INFO' "Watcher started. Monitoring for events..."
 while ($true) { 
-    sleep 5
+    Start-Sleep -Seconds 5
 }
 
 # TODO: Add funcionality to decet if in file is .wav and do nothing but create the csv file
