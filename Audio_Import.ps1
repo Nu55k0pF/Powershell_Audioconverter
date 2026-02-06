@@ -20,11 +20,31 @@ function Wait-ForFileReady {
     return $false
 }
 
+# Logging setup: write all messages to a log file with timestamps
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if (-not $ScriptDir) { $ScriptDir = Get-Location }
+$LogFile = Join-Path $ScriptDir "Audio_Import.log"
+
+function Write-Log {
+    param(
+        [Parameter(Mandatory=$true)][ValidateSet('INFO','WARN','ERROR','DEBUG')] $Level,
+        [Parameter(Mandatory=$true)] [string] $Message
+    )
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $entry = "[$timestamp] [$Level] $Message"
+    try {
+        $entry | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+    } catch {
+        # If logging fails, fallback to host so user can see an issue
+        Write-Host "Logging failed: $_"
+    }
+}
+
 # DEFINE ACTIONS AFTER AN EVENT IS DETECTED
 $action = { 
     $path = $Event.SourceEventArgs.FullPath
     $changeType = $Event.SourceEventArgs.ChangeType
-    Write-Host "$changeType, $path"
+    Write-Log 'INFO' "$changeType, $path"
 }
 
 $action2 = { 
@@ -34,18 +54,18 @@ $action2 = {
         
         $path = $Event.SourceEventArgs.FullPath
         $changeType = $Event.SourceEventArgs.ChangeType
-        Write-Host "$changeType, $path"
+        Write-Log 'INFO' "$changeType, $path"
         $filenameOnly = [System.IO.Path]::GetFileName($infile)
 		$nameWithoutExt = [System.IO.Path]::GetFileNameWithoutExtension($filenameOnly)
         $destFile = Join-Path $DestinationRoot $filenameOnly
-        Write-Host "Attempting copy to: $destFile"
+        Write-Log 'INFO' "Attempting copy to: $destFile"
 	
         try {
             # force terminating error on failure so catch block runs
             Copy-Item -Path $infile -Destination $destFile -Force -ErrorAction Stop
-            Write-Host "Copied MP3 to: $destFile"
+            Write-Log 'INFO' "Copied MP3 to: $destFile"
         } catch {
-            Write-Error "Failed to copy $infile -> $destFile : $_"
+            Write-Log 'ERROR' "Failed to copy $infile -> $destFile : $($_.Exception.Message)"
             return
         }
         # create .txt file next to copied file, content derived from filename
@@ -56,20 +76,20 @@ $action2 = {
 		$Number = "-01"
 		$filed1 = $nameWithoutExt + $Number
 		$ID = $filed1 -replace '\s', ''    # removes all whitespace from filename
-		Write-Host "$ID"
+		Write-Log 'DEBUG' "$ID"
         $txtContent = "$ID;BLR;$nameWithoutExt;autoimport $dateStr $timeStr;13;-1;-1;-1"
 
         try {
             Set-Content -Path $txtFile -Value $txtContent -ErrorAction Stop
-            Write-Host "Created txt: $txtFile"
+            Write-Log 'INFO' "Created txt: $txtFile"
         } catch {
-            Write-Error "Failed to write txt file $txtFile : $_"
+            Write-Log 'ERROR' "Failed to write txt file $txtFile : $($_.Exception.Message)"
         }
 		# cleanup: delete the original file after successful processing
         try {
             Remove-Item -Path $infile -Force -ErrorAction Stop
         } catch {
-            Write-Warning "Failed to delete original file $infile : $_"
+            Write-Log 'WARN' "Failed to delete original file $infile : $($_.Exception.Message)"
         }
 		
 }
