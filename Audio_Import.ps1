@@ -1,6 +1,6 @@
 # SET FOLDER TO WATCH + FILES TO WATCH + SUBFOLDERS YES/NO
 $watcher = New-Object System.IO.FileSystemWatcher
-$watcher.Path = "G:\KI-Import\"
+$watcher.Path = "C:\Users\Johannes Schnurrenbe\Desktop\Test_Links\"
 $watcher.Filter = "*.*"
 $watcher.IncludeSubdirectories = $true
 $watcher.EnableRaisingEvents = $true  
@@ -49,7 +49,7 @@ $action = {
 
 $action2 = { 
 		# DESTINATION FOR COPIED MP3 FILES (adjust as needed)
-		$DestinationRoot = "C:\ProgramData\Zenon-Media\All in One\UniversalImport3\newsIn"
+		$DestinationRoot = "C:\Users\Johannes Schnurrenbe\Desktop\Test_Rechts"
         $infile = $Event.SourceEventArgs.FullPath
         
         $path = $Event.SourceEventArgs.FullPath
