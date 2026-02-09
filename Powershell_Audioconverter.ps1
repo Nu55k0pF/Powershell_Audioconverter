@@ -147,9 +147,16 @@ Register-ObjectEvent $watcher "Deleted" -Action $action -MessageData @{LogFile=$
 
 # Endlosschleife, damit das Skript weiterhin läuft
 Prune-LogEntries -LogFile $LogFile -DaysToKeep 7
+$lastPruneTime = Get-Date
 Write-Log 'INFO' "Audio Converter Watcher started. Monitoring for events..."
 while ($true) { 
     sleep 5
+    # Prune logs daily
+    if ((Get-Date) -ge $lastPruneTime.AddHours(24)) {
+        Prune-LogEntries -LogFile $LogFile -DaysToKeep 7
+        $lastPruneTime = Get-Date
+        Write-Log 'INFO' "Log cleanup completed (keeping last 7 days)"
+    }
 } 
 
 #TODO: Merge to Master and Rollout to Production
