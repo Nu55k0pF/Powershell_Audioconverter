@@ -25,6 +25,32 @@ function Write-Log {
     }
 }  
 
+# Keep log entries for a limited number of days (default 7)
+function Prune-LogEntries {
+    param(
+        [Parameter(Mandatory=$true)][string] $LogFile,
+        [int] $DaysToKeep = 7
+    )
+    if (-not (Test-Path $LogFile)) { return }
+    $cutoff = (Get-Date).AddDays(-$DaysToKeep)
+    $lines = Get-Content $LogFile -ErrorAction SilentlyContinue
+    if (-not $lines) { return }
+    $kept = foreach ($line in $lines) {
+        if ($line -match '^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\]') {
+            try {
+                $ts = [datetime]$matches[1]
+            } catch {
+                $line
+                continue
+            }
+            if ($ts -ge $cutoff) { $line }
+        } else {
+            $line
+        }
+    }
+    if ($kept) { $kept | Set-Content -Path $LogFile -Encoding UTF8 }
+}
+
 # DEFINE ACTIONS AFTER AN EVENT IS DETECTED
 $action = { 
     $path = $Event.SourceEventArgs.FullPath
@@ -120,6 +146,7 @@ Register-ObjectEvent $watcher "Deleted" -Action $action -MessageData @{LogFile=$
 # Register-ObjectEvent $watcher "Renamed" -Action $action2
 
 # Endlosschleife, damit das Skript weiterhin läuft
+Prune-LogEntries -LogFile $LogFile -DaysToKeep 7
 Write-Log 'INFO' "Audio Converter Watcher started. Monitoring for events..."
 while ($true) { 
     sleep 5
